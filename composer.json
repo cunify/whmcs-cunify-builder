@@ -1,0 +1,27 @@
+{
+    "name": "cunify/whmcs-cunify-builder",
+    "description": "A WHMCS Module for simplifying auto setup of Wordpress, Joomla and Laravel(Kazist) Websites.",
+    "keywords": [
+        "whmcs",
+        "web host automation platform",
+        "auto setup of wordpress, joomla and laravel website"
+    ],
+    "homepage": "http://www.cunify.com/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cunify Team",
+            "email": "info@cunify.com",
+            "homepage": "http://www.cunify.com/",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "support@cunify.com",
+        "forum": "http://www.cunify.com/forums",
+        "wiki": "http://docs.cunify.com/"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "@stable"
+    }
+}
