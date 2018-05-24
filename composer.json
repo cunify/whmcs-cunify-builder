@@ -4,8 +4,8 @@
     "keywords": [
         "whmcs",
         "web host automation platform",
-          "auto setup of wordpress",
-          "auto setup of joomla",
+        "auto setup of wordpress",
+        "auto setup of joomla",
         "auto setup of laravel website"
     ],
     "homepage": "http://www.cunify.com/",
@@ -23,7 +23,26 @@
         "forum": "http://www.cunify.com/forums",
         "wiki": "http://docs.cunify.com/"
     },
+    "require": {
+        "wikimedia/composer-merge-plugin": "*@stable",
+        "mnsami/composer-custom-directory-installer": "*@stable",
+        "gufy/cpanel-whm": "@stable",
+        "twig/twig": "1.*@stable"
+    },  
     "require-dev": {
         "phpunit/phpunit": "@stable"
+    },
+    "extra": {
+        "installer-paths": {
+            "applications/Contacts/": ["kazist/contacts"],
+            "applications/Media/": ["kazist/media"],
+            "applications/Notification/": ["kazist/notification"],
+            "applications/Search/": ["kazist/search"],
+            "applications/Setup/": ["kazist/setup"],
+            "applications/System/": ["kazist/system"],
+            "applications/Users/": ["kazist/users"],
+            "assets/": ["kazist/assets"],
+            "include/": ["kazist/core"]
+        }
     }
 }
