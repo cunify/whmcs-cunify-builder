@@ -4,7 +4,9 @@
     "keywords": [
         "whmcs",
         "web host automation platform",
-        "auto setup of wordpress, joomla and laravel website"
+          "auto setup of wordpress",
+          "auto setup of joomla",
+        "auto setup of laravel website"
     ],
     "homepage": "http://www.cunify.com/",
     "license": "MIT",
