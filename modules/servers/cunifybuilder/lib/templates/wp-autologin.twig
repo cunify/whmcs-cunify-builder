@@ -1,0 +1,50 @@
+<?php
+
+require('wp-blog-header.php');  
+
+$accesskey = $_GET['accesskey'];
+
+if($accesskey <> ''){
+    
+    $url="{{ url('hosting.hosting.accesskey', null, 0) }}?accesskey=" . $accesskey;
+    
+     $curl = curl_init();
+    // Set some options - we are passing in a useragent too here
+    curl_setopt_array($curl, array(
+        CURLOPT_RETURNTRANSFER => 1,
+        CURLOPT_URL => $url,
+        CURLOPT_USERAGENT => 'Verify Access Key'
+    ));
+    // Send the request & save response to $resp
+    $result = curl_exec($curl);
+    // Close request to clear up some resources
+    curl_close($curl);
+    
+    $data = json_decode($result, true);
+    
+    if($data['status']){
+        
+        $user_login = '{{ username|raw }}';  
+        $user = get_userdatabylogin($user_login);  
+        $user_id = $user->ID;   
+        wp_set_current_user($user_id, $user_login);  
+        wp_set_auth_cookie($user_id);   
+        do_action('wp_login', $user_login);
+        
+        header("Location: http://{{ domain|raw }}/wp-admin");
+        die();
+        
+    }else{
+        
+         header("Location: http://{{ domain|raw }}");
+        die();
+        
+    }
+}else{
+    
+    $data = array();
+    $data['status'] = 1;
+    
+    echo json_encode($data);
+    
+}

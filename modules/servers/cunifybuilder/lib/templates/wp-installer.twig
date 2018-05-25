@@ -1,0 +1,95 @@
+<?php
+/**
+ * The base configuration for WordPress
+ *
+ * The wp-config.php creation script uses this file during the
+ * installation. You don't have to use the web site, you can
+ * copy this file to "wp-config.php" and fill in the values.
+ *
+ * This file contains the following configurations:
+ *
+ * * MySQL settings
+ * * Secret keys
+ * * Database table prefix
+ * * ABSPATH
+ *
+ * @link https://codex.wordpress.org/Editing_wp-config.php
+ *
+ * @package WordPress
+ */
+ 
+$zip = new ZipArchive;
+
+if ($zip->open(__DIR__ . '/upload.zip') === TRUE) {
+
+    $zip->extractTo(__DIR__);
+    $zip->close();
+
+    echo 'Zip File Extracted Successfully.';
+
+} else {
+    echo 'Extracting Zip File Failed.';
+}
+
+if(file_exists('database.sql')){
+
+    // ** MySQL settings - You can get this info from your web host ** //
+    /** The name of the database for WordPress */
+    define('DB_NAME', '{{ database_name|raw }}');
+
+    /** MySQL database username */
+    define('DB_USER', '{{ database_user|raw }}');
+
+    /** MySQL database password */
+    define('DB_PASSWORD', '{{ password|raw }}');
+
+    /** MySQL hostname */
+    define('DB_HOST', 'localhost');
+
+    /** Database Charset to use in creating database tables. */
+    define('DB_CHARSET', 'utf8mb4');
+
+    /** The Database Collate type. Don't change this if in doubt. */
+    define('DB_COLLATE', '');
+
+    /**
+     * WordPress Database Table prefix.
+     *
+     * You can have multiple installations in one database if you give each
+     * a unique prefix. Only numbers, letters, and underscores please!
+     */
+    $table_prefix  = 'wp_';
+
+    $con = mysqli_connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME) or die("Some error occurred during connection " . mysqli_error($con));  
+
+
+    // Temporary variable, used to store current query
+    $templine = '';
+    // Read in entire file
+    $lines = file('database.sql');
+    // Loop through each line
+    foreach ($lines as $line)
+    {
+    // Skip it if it's a comment
+    if (substr($line, 0, 2) == '--' || $line == '')
+        continue;
+
+    // Add this line to the current segment
+    $templine .= $line;
+    // If it has a semicolon at the end, it's the end of the query
+    if (substr(trim($line), -1, 1) == ';')
+    {
+
+        // Perform the query
+         mysqli_query($con, $templine) or print('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
+        // Reset temp variable to empty
+        $templine = '';
+    }
+    }
+
+    echo "Tables imported successfully";
+}
+ 
+unlink(__DIR__ . '/upload.zip');
+unlink(__DIR__ . '/database.sql');
+unlink(__DIR__ . '/error_log');
