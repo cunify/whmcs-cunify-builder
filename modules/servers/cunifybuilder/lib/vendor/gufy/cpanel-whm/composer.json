@@ -1,0 +1,26 @@
+{
+    "name": "gufy/cpanel-whm",
+    "description": "Laravel cPanel/WHM API Package.",
+    "keywords": ["framework", "laravel","cPanel","WHM","cPanel API"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mochamad Gufron",
+            "email": "mgufronefendi@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "~5",
+        "gufy/cpanel-php": "~1.0"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-0": {
+            "Gufy\\CpanelWhm\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
