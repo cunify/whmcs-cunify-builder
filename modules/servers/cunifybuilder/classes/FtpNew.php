@@ -2,12 +2,8 @@
 
 //Thanks for iYETER on http://stackoverflow.com/questions/927341/upload-entire-directory-via-php-ftp
 
-namespace Hosting\Hosting\Code\Classes;
-
-defined('KAZIST') or exit(DIE_MSG);
-
-
-class FtpNew {
+class FtpNew
+{
 
     private $successful = true;
     private $connectionID;
@@ -15,27 +11,30 @@ class FtpNew {
     private $blackList = array('.', '..', 'Thumbs.db');
     private $ignore_list = array('config.php');
 
-    public function __construct($ftpHost = "") {
-        if ($ftpHost != "")
+    public function __construct($ftpHost = "")
+    {
+        if ($ftpHost != "") {
             $this->connectionID = ftp_connect($ftpHost);
+        }
+
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->disconnect();
     }
 
-    public function connect($ftpHost) {
+    public function connect($ftpHost)
+    {
         $this->disconnect();
         $this->connectionID = ftp_connect($ftpHost, 21);
         return $this->connectionID;
     }
 
-    public function login($ftpUser, $ftpPass) {
-
-        $factory = new KazistFactory();
-
+    public function login($ftpUser, $ftpPass)
+    {
         if (!$this->connectionID) {
-            $factory->enqueueMessage("Connection not established.", 'error');
+            //$factory->enqueueMessage("Connection not established.", 'error');
             return false;
         } else {
             $this->ftpSession = ftp_login($this->connectionID, $ftpUser, $ftpPass);
@@ -44,18 +43,21 @@ class FtpNew {
         }
     }
 
-    public function disconnect() {
+    public function disconnect()
+    {
         if (isset($this->connectionID)) {
             ftp_close($this->connectionID);
             unset($this->connectionID);
         }
     }
 
-    public function send_recursive_directory($localPath, $remotePath) {
+    public function send_recursive_directory($localPath, $remotePath)
+    {
         return $this->recurse_directory($localPath, $localPath, $remotePath);
     }
 
-    private function recurse_directory($rootPath, $localPath, $remotePath) {
+    private function recurse_directory($rootPath, $localPath, $remotePath)
+    {
 
         $errorList = array();
         //$remotePath = realpath($remotePath);
@@ -69,8 +71,10 @@ class FtpNew {
 
         while ($file = readdir($directory)) {
 
-            if (in_array($file, $this->blackList))
+            if (in_array($file, $this->blackList)) {
                 continue;
+            }
+
             if (is_dir($file)) {
                 $errorList["$remotePath/$file"] = $this->make_directory("$remotePath/$file");
                 $errorList[] = $this->recurse_directory($rootPath, "$localPath/$file", "$remotePath/$file");
@@ -83,9 +87,9 @@ class FtpNew {
         return $errorList;
     }
 
-    function recursiveDelete($directory) {
+    public function recursiveDelete($directory)
+    {
 
-        $factory = new KazistFactory();
 
         foreach ($this->ignore_list as $key => $ignore) {
             if (strpos($directory, $ignore)) {
@@ -116,22 +120,18 @@ class FtpNew {
                 }
             } else {
 
-                $this->successful = FALSE;
+                $this->successful = false;
 
                 foreach ($filelist as $file) {
                     $this->recursiveDelete($file);
                 }
 
-                $factory->enqueueMessage('Directory: ' . $directory, 'error');
-
-                foreach ($buff as $file) {
-                    $factory->enqueueMessage('File:   ' . $file, 'error');
-                }
             }
         }
     }
 
-    public function make_directory($remotePath) {
+    public function make_directory($remotePath)
+    {
 
         $error = "";
 
@@ -140,13 +140,16 @@ class FtpNew {
                 ftp_mkdir($this->connectionID, $remotePath);
             }
         } catch (\Exception $e) {
-            if ($e->getCode() == 2)
+            if ($e->getCode() == 2) {
                 $error = $e->getMessage();
+            }
+
         }
         return $error;
     }
 
-    public function put_file($localPath, $remotePath) {
+    public function put_file($localPath, $remotePath)
+    {
         $error = "";
 
         try {
@@ -154,13 +157,16 @@ class FtpNew {
             ftp_put($this->connectionID, $remotePath, $localPath, FTP_BINARY);
             chown($remotePath, get_current_user());
         } catch (\Exception $e) {
-            if ($e->getCode() == 2)
+            if ($e->getCode() == 2) {
                 $error = $e->getMessage();
+            }
+
         }
         return $error;
     }
 
-    function ftp_is_dir($ftp, $dir) {
+    public function ftp_is_dir($ftp, $dir)
+    {
 
         $pushd = ftp_pwd($ftp);
 
@@ -172,8 +178,8 @@ class FtpNew {
         return false;
     }
 
-    function ftp_file_exists($file) {
-
+    public function ftp_file_exists($file)
+    {
 
         $listing = ftp_nlist($this->connectionID, $file);
 
@@ -183,11 +189,9 @@ class FtpNew {
             echo "$file was found on $server\n";
         }
 
-
         ftp_chdir($this->connectionID, $path);
         $filelist = @ftp_nlist($this->connectionID, '-A ' . $path);
         $buff = ftp_rawlist($this->connectionID, '-aAF ' . $path);
-
 
         echo '<br>';
         echo '<br>';
@@ -196,7 +200,6 @@ class FtpNew {
         echo '<br>';
         print_r($buff);
         exit;
-
 
         // Test if file is in the ftp_nlist array
         if (in_array($check_file_exist, $filelist)) {

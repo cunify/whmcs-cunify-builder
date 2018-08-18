@@ -6,7 +6,6 @@
  * and open the template in the editor.
  */
 
-namespace Hosting\Hosting\Code\Classes;
 
 /**
  * Description of Member
@@ -14,7 +13,8 @@ namespace Hosting\Hosting\Code\Classes;
  * @author sbc
  */
 
-class Whm {
+class Whm
+{
 
     public $message = '';
     public $user_id = '';
@@ -26,94 +26,31 @@ class Whm {
     public $whm_account_user = '';
     public $prefix = 'host';
 
-    public function __construct() {
+    public function __construct()
+    {
 
         define("CPANEL_API_1", 1);
         define("CPANEL_API_2", 2);
         define("UAPI", 3);
     }
 
-    public function setupConnection($account) {
+    public function setupConnection($account)
+    {
 
-        $domain = $account->domain;
+        $cpanel = new \Gufy\CpanelPhp\Cpanel([
+            'host' => $host_url,
+            'username' => $account['username'],
+            'auth_type' => 'hash', // there is also an option to use "hash"
+            'password' => $account['accesshash'], // if you use hash, get the value from WHM's Remote Access Key if not use the root password here
+        ]);
 
-        if ($this->domain == $domain) {
-            return $this->cpanel;
-        }
+        $this->cpanel = $cpanel;
 
-        $preferred_cpanel = '';
-        $this->domain = $domain;
-
-        $servers = $this->getServers($account);
-
-        foreach ($servers as $key => $server) {
-
-
-            $host_url = $server->domain . ':2087';
-
-            $cpanel = new \Gufy\CpanelPhp\Cpanel([
-                'host' => $host_url,
-                'username' => $server->username,
-                'auth_type' => $server->auth_type, // there is also an option to use "hash"
-                'password' => $server->password, // if you use hash, get the value from WHM's Remote Access Key if not use the root password here
-            ]);
-
-            $cpanel->setTimeout(100);
-            $cpanel->setConnectionTimeout(100);
-
-            $search_arr = array('searchtype' => 'domain', 'searchmethod' => 'exact', 'search' => $domain);
-
-            $whm_account_str = $cpanel->listaccts($search_arr);
-            $whm_account = json_decode($whm_account_str, true);
-
-            if (!empty($whm_account['acct'])) {
-
-                $this->server = $server;
-                $this->cpanel = $cpanel;
-                $this->account_exist = 1;
-                $this->whm_account_user = $whm_account['acct'][0];
-
-                return $cpanel;
-            }
-
-            if (!$key) {
-                $preferred_server = $server;
-                $preferred_cpanel = $cpanel;
-            }
-        }
-
-        $this->account_exist = 0;
-        $this->cpanel = $preferred_cpanel;
-        $this->server = $preferred_server;
-
-        return $preferred_cpanel;
+        return $cpanel;
     }
 
-    public function syncWhmAccount($account) {
-
-        $this->setupConnection($account);
-        
-        if (!$this->account_exist) {
-            $this->createAccount($account);
-            $this->modifyAccount($account);
-        } else {
-            $this->modifyAccount($account, $this->whm_account_user);
-        }
-
-        $this->createFtp($account);
-        $this->createEmail($account);
-        $this->createDatabase($account);
-        $this->updateServer($account);
-
-        if ($account->status) {
-            $this->unsuspendAccount($account);
-        } else {
-            $this->suspendAccount($account);
-        }
-    }
-
-
-    public function searchAccount($account) {
+    public function searchAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
@@ -129,53 +66,28 @@ class Whm {
         return false;
     }
 
-    public function modifyAccount($account, $whm_account_user = '') {
-
-        $email = new Email();
-        $cpanel = $this->setupConnection($account);
-
-        if ($whm_account_user == '') {
-            $search_arr = array('searchtype' => 'domain', 'searchmethod' => 'exact', 'search' => $account->domain);
-            $whm_account_str = $cpanel->listaccts($search_arr);
-
-            $whm_account = json_decode($whm_account_str, true);
-
-            $whm_account_user = $whm_account['acct'][0];
-        }
-
-        if ($whm_account_user['user'] != $account->username) {
-            $this->modifyUsernameAccount($account, $whm_account_user);
-            $email->sendDefinedLayoutEmail('hosting.hosting.whm.createaccount', $account->email, $account);
-        }
-
-        if ($whm_account_user['email'] != $account->email) {
-            $this->modifyEmailAccount($account);
-            $email->sendDefinedLayoutEmail('hosting.hosting.whm.createaccount', $account->email, $account);
-        }
-
-        $this->changePasswords($account);
-    }
-
-    public function createAccount($account) {
+    public function createAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $new_cpanel = $cpanel->createAccount($account->domain, $account->username, $account->password, $account->plan);
-   
+
         $this->setEnqueuedMessage($new_cpanel);
     }
 
-    public function createLoginLink($account, $app = '') {
+    public function createLoginLink($account, $app = '')
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $options = [
             'user' => $account->username,
             'service' => 'cpaneld',
-            'api.version' => 1
+            'api.version' => 1,
         ];
 
-        if ($app <> '') {
+        if ($app != '') {
             $options['app'] = $app;
         }
 
@@ -193,7 +105,8 @@ class Whm {
         }
     }
 
-    public function changePasswords($account) {
+    public function changePasswords($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
@@ -204,117 +117,123 @@ class Whm {
         //Change cpanel password
         $result = $cpanel->passwd([
             'user' => $account->username,
-            'pass' => $account->password
+            'pass' => $account->password,
         ]);
 
         //Change email password
         $result = $cpanel->execute_action(
-                UAPI, 'Email', 'passwd_pop', $account->username, array(
-            'domain' => $account->domain,
-            'email' => $email_account,
-            'password' => $account->password
-                )
+            UAPI, 'Email', 'passwd_pop', $account->username, array(
+                'domain' => $account->domain,
+                'email' => $email_account,
+                'password' => $account->password,
+            )
         );
         $this->setEnqueuedMessage($result);
 
         //Change ftp password
         $result = $cpanel->execute_action(
-                UAPI, 'Ftp', 'passwd', $account->username, array(
-            'user' => $ftp_account,
-            'pass' => $account->password
-                )
+            UAPI, 'Ftp', 'passwd', $account->username, array(
+                'user' => $ftp_account,
+                'pass' => $account->password,
+            )
         );
         $this->setEnqueuedMessage($result);
 
         //Change database table password
         $grant = $cpanel->execute_action(
-                UAPI, 'Mysql', 'set_privileges_on_database', $account->username, [
-            'user' => $database_account,
-            'database' => $database_account,
-            'privileges' => 'ALL PRIVILEGES'
-                ]
+            UAPI, 'Mysql', 'set_privileges_on_database', $account->username, [
+                'user' => $database_account,
+                'database' => $database_account,
+                'privileges' => 'ALL PRIVILEGES',
+            ]
         );
         $this->setEnqueuedMessage($grant);
 
         $result = $cpanel->execute_action(
-                UAPI, 'Mysql', 'set_password', $account->username, array(
-            'user' => $database_account,
-            'password' => $account->password,
-                )
+            UAPI, 'Mysql', 'set_password', $account->username, array(
+                'user' => $database_account,
+                'password' => $account->password,
+            )
         );
         $this->setEnqueuedMessage($result);
     }
 
-    public function unsuspendAccount($account) {
+    public function unsuspendAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         if (is_object($cpanel)) {
             $result = $cpanel->unsuspendacct([
-                'user' => $account->username
+                'user' => $account->username,
             ]);
 
             $this->setEnqueuedMessage($result);
         }
     }
 
-    public function suspendAccount($account) {
+    public function suspendAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         if (is_object($cpanel)) {
             $result = $cpanel->suspendacct([
                 'user' => $account->username,
-                'reason' => 'Nonpayment'
+                'reason' => 'Nonpayment',
             ]);
 
             $this->setEnqueuedMessage($result);
         }
     }
 
-    public function removeAccount($account) {
+    public function removeAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         if (is_object($cpanel)) {
             $result = $cpanel->removeacct([
-                'user' => $account->username
+                'user' => $account->username,
             ]);
 
             $this->setEnqueuedMessage($result);
         }
     }
-    public function changeDomainAccount($account, $whm_account) {
+    public function changeDomainAccount($account, $whm_account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $result = $cpanel->modifyacct(array(
             'user' => $whm_account['user'],
-            'DNS' => $account->old_domain
+            'DNS' => $account->old_domain,
         ));
 
         $this->setEnqueuedMessage($result);
     }
-    
-    public function modifyUsernameAccount($account, $whm_account) {
+
+    public function modifyUsernameAccount($account, $whm_account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $result = $cpanel->modifyacct(array(
             'user' => $whm_account['user'],
-            'newuser' => $account->username
+            'newuser' => $account->username,
         ));
 
         $this->setEnqueuedMessage($result);
     }
 
-    public function modifyEmailAccount($account) {
+    public function modifyEmailAccount($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $result = $cpanel->modifyacct([
             'user' => $account->username,
-            'contactemail' => $account->email
+            'contactemail' => $account->email,
         ]);
 
         $this->setEnqueuedMessage($result);
@@ -322,23 +241,25 @@ class Whm {
 
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Ftp Functions
 
-    public function getFtpAccount($account) {
+    public function getFtpAccount($account)
+    {
 
         $ftp_account = 'ftp' . $account->username . '@' . $account->domain;
 
         return $ftp_account;
     }
 
-    public function createFtp($account) {
+    public function createFtp($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $ftp_account = $this->getFtpAccount($account);
 
         $new_ftp = $cpanel->execute_action(
-                UAPI, 'Ftp', 'ftp_exists', $account->username, array(
-            'user' => $ftp_account
-                )
+            UAPI, 'Ftp', 'ftp_exists', $account->username, array(
+                'user' => $ftp_account,
+            )
         );
 
         $new_ftp_obj = json_decode($new_ftp);
@@ -346,11 +267,11 @@ class Whm {
         if (!$new_ftp_obj->result->status) {
 
             $new_ftp = $cpanel->execute_action(
-                    UAPI, 'Ftp', 'add_ftp', $account->username, array(
-                'user' => $ftp_account,
-                'pass' => $account->password,
-                'homedir' => 'public_html'
-                    )
+                UAPI, 'Ftp', 'add_ftp', $account->username, array(
+                    'user' => $ftp_account,
+                    'pass' => $account->password,
+                    'homedir' => 'public_html',
+                )
             );
 
             $this->setEnqueuedMessage($new_ftp);
@@ -359,23 +280,25 @@ class Whm {
 
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Email Functions
 
-    public function getEmailAccount($account) {
+    public function getEmailAccount($account)
+    {
 
         $email_account = $account->username;
 
         return $email_account;
     }
 
-    public function createEmail($account) {
+    public function createEmail($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $email_account = $this->getEmailAccount($account);
 
         $exist_email = $cpanel->execute_action(
-                UAPI, 'Email', 'list_pops', $account->username, array(
-            'regex' => $email_account
-                )
+            UAPI, 'Email', 'list_pops', $account->username, array(
+                'regex' => $email_account,
+            )
         );
 
         $new_email_obj = json_decode($exist_email);
@@ -383,13 +306,13 @@ class Whm {
         if (!$new_email_obj->status) {
 
             $new_email = $cpanel->execute_action(
-                    UAPI, 'Email', 'add_pop', $account->username, array(
-                'email' => $email_account,
-                'password' => $account->password,
-                'quota' => '0',
-                'domain' => $account->domain,
-                'skip_update_db' => '0',
-                    )
+                UAPI, 'Email', 'add_pop', $account->username, array(
+                    'email' => $email_account,
+                    'password' => $account->password,
+                    'quota' => '0',
+                    'domain' => $account->domain,
+                    'skip_update_db' => '0',
+                )
             );
 
             $this->setEnqueuedMessage($new_email);
@@ -397,23 +320,25 @@ class Whm {
     }
 
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Database Functions
-    public function getDatabaseName($account) {
+    public function getDatabaseName($account)
+    {
 
         $str_username = substr($account->username, 0, 8) . '_' . 'main';
 
         return $str_username;
     }
 
-    public function createDatabase($account) {
+    public function createDatabase($account)
+    {
 
         $cpanel = $this->setupConnection($account);
 
         $prefix_anewdb = $this->getDatabaseName($account);
 
         $check_db = $cpanel->execute_action(
-                UAPI, 'Mysql', 'check_database', $account->username, [
-            'name' => $prefix_anewdb
-                ]
+            UAPI, 'Mysql', 'check_database', $account->username, [
+                'name' => $prefix_anewdb,
+            ]
         );
 
         if (!$check_db->status) {
@@ -422,21 +347,21 @@ class Whm {
 
             //create the new user!
             $usr = $cpanel->execute_action(
-                    UAPI, 'Mysql', 'create_user', $account->username, [
-                'name' => $prefix_anewdb,
-                'password' => $account->password
-                    ]
+                UAPI, 'Mysql', 'create_user', $account->username, [
+                    'name' => $prefix_anewdb,
+                    'password' => $account->password,
+                ]
             );
 
             $this->setEnqueuedMessage($usr);
 
             //grant everything
             $grant = $cpanel->execute_action(
-                    UAPI, 'Mysql', 'set_privileges_on_database', $account->username, [
-                'user' => $prefix_anewdb,
-                'database' => $prefix_anewdb,
-                'privileges' => 'ALL PRIVILEGES'
-                    ]
+                UAPI, 'Mysql', 'set_privileges_on_database', $account->username, [
+                    'user' => $prefix_anewdb,
+                    'database' => $prefix_anewdb,
+                    'privileges' => 'ALL PRIVILEGES',
+                ]
             );
 
             $this->setEnqueuedMessage($grant);
@@ -445,17 +370,18 @@ class Whm {
 
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx Utility Functions
 
-    public function setEnqueuedMessage($new_cpanel) {
+    public function setEnqueuedMessage($new_cpanel)
+    {
 
-        $factory = new KazistFactory();
-        
-        if($this->ignore_error_log){
+        $factory = new CunifyFactory();
+
+        if ($this->ignore_error_log) {
             return;
         }
 
         $new_cpanel_arr = json_decode($new_cpanel, true);
 
-        if ($new_cpanel_arr['result'] && $new_cpanel_arr['result'][0]['status'] == 0 && $new_cpanel_arr['result'][0]['statusmsg'] <> '') {
+        if ($new_cpanel_arr['result'] && $new_cpanel_arr['result'][0]['status'] == 0 && $new_cpanel_arr['result'][0]['statusmsg'] != '') {
             $factory->enqueueMessage($new_cpanel_arr['result'][0]['statusmsg'], 'error');
         }
 
@@ -463,7 +389,7 @@ class Whm {
 
             $error_msg = implode('', $new_cpanel_arr['result']['errors']);
 
-            if ($error_msg <> '') {
+            if ($error_msg != '') {
                 $factory->enqueueMessage('', 'error');
                 $factory->enqueueMessage($error_msg, 'error');
             }

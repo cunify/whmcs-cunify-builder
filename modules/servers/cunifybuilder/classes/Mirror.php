@@ -6,7 +6,6 @@
  * and open the template in the editor.
  */
 
-namespace Hosting\Hosting\Code\Classes;
 
 use Symfony\Component\DomCrawler\Crawler;
 use Goutte\Client;
