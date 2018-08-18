@@ -39,9 +39,9 @@ class Whm
 
         $cpanel = new \Gufy\CpanelPhp\Cpanel([
             'host' => $host_url,
-            'username' => $account['serverusername'],
+            'username' => $this->server['username'],
             'auth_type' => 'hash', // there is also an option to use "hash"
-            'password' => $account['serveraccesshash'], // if you use hash, get the value from WHM's Remote Access Key if not use the root password here
+            'password' => $this->server['accesshash'], // if you use hash, get the value from WHM's Remote Access Key if not use the root password here
         ]);
 
         $this->cpanel = $cpanel;
@@ -71,7 +71,7 @@ class Whm
 
         $cpanel = $this->setupConnection($account);
 
-        $new_cpanel = $cpanel->createAccount($account['domain'], $account['username'], $account['password'], $account['plan']);
+        $new_cpanel = $cpanel->createAccount($account['domain'], $account['username'], $account['password'], $account['configoption1']);
 
         $this->setEnqueuedMessage($new_cpanel);
     }

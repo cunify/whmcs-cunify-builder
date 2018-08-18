@@ -146,6 +146,8 @@ function cunifybuilder_CreateAccount(array $params) {
         //     ...
         // )
         // ```
+
+    
     } catch (Exception $e) {
         // Record the error in WHMCS's module log.
         logModuleCall(
