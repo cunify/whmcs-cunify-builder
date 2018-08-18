@@ -60,7 +60,6 @@ class Cpanel
         $whm->createFtp($account);
         $whm->createEmail($account);
         $whm->createDatabase($account);
-        $whm->updateServer($account);
 
         $this->backupSite($account);
         $this->recursiveDelete($extract_path);
@@ -69,7 +68,7 @@ class Cpanel
 
         $this->uploadFiles($extract_path, $account);
 
-        $installer_url = $account->domain . '/wp-installer.php';
+        $installer_url = $account['domain'] . '/wp-installer.php';
 
         $this->curlCall($installer_url, true);
 
@@ -143,9 +142,9 @@ class Cpanel
         $sql = file_get_contents($template_path . '/changedomain.sql');
         $changedomain = file_get_contents('../templates/wp-changedomain.twig');
 
-        $account->database_name = substr($account['username'], 0, 8) . '_' . 'main';
-        $account->database_user = $account->database_name;
-        $account->database_prefix = 'wp';
+        $account['database_name'] = substr($account['username'], 0, 8) . '_' . 'main';
+        $account['database_user'] = $account['database_name'];
+        $account['database_prefix'] = 'wp';
 
         $sql_str = $factory->renderString($sql, (array) $account);
         $changedomain_str = $factory->renderString($changedomain, (array) $account);
