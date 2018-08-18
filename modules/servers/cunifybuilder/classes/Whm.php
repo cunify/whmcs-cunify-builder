@@ -37,6 +37,8 @@ class Whm
     public function setupConnection($account)
     {
 
+        $host_url = $this->server['hostname'] . ':2087';
+
         $cpanel = new \Gufy\CpanelPhp\Cpanel([
             'host' => $host_url,
             'username' => $this->server['username'],

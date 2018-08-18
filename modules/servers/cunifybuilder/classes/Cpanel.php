@@ -26,17 +26,14 @@ class Cpanel
 
         $factory = new CunifyFactory();
 
-        $extract_path = __DIR__ . '../uploads/updates/' . $account['username'];
+        $extract_path = __DIR__ . '/../uploads/updates/' . $account['username'];
 
         $factory->makeDir($extract_path, 0777);
 
         $this->recursiveDelete($extract_path);
 
-        $installer = file_get_contents(__DIR__ . '../templates/wp-installer.twig');
-        $autologin = file_get_contents(__DIR__ . '../templates/wp-autologin.twig');
-        $autologin_str = $factory->renderString($autologin, (array) $account);
+        $installer = file_get_contents(__DIR__ . '/../templates/wp-installer.twig');
         $installer_str = $factory->renderString($installer, (array) $account);
-        file_put_contents($extract_path . '/wp-autologin.php', $autologin_str);
         file_put_contents($extract_path . '/wp-installer.php', $installer_str);
 
         $this->uploadFiles($extract_path, $account);
@@ -52,8 +49,8 @@ class Cpanel
         $whm = new Whm();
         $factory = new CunifyFactory();
 
-        $extract_path = __DIR__ . '../uploads/updates/' . $account['username'];
-        $template_path = __DIR__ . '../templates/wordpress/files.zip';
+        $extract_path = __DIR__ . '/../uploads/updates/' . $account['username'];
+        $template_path = __DIR__ . '/../templates/wordpress/files.zip';
 
         $factory->makeDir($extract_path, 0777);
 
@@ -81,8 +78,8 @@ class Cpanel
 
         $factory = new CunifyFactory();
 
-        $extract_path = __DIR__ . '../uploads/updates/' . $account['username'];
-        $template_path = __DIR__ . '../templates/';
+        $extract_path = __DIR__ . '/../uploads/updates/' . $account['username'];
+        $template_path = __DIR__ . '/../templates/';
 
         if ($this->isReadyForInstall($account, $extract_path)) {
 
@@ -124,7 +121,7 @@ class Cpanel
 
         $folder = 'archive/';
         $backup_url = $account['domain'] . '/wp-backup.php';
-        $extract_path = __DIR__ . '../uploads/updates/' . $account['username'];
+        $extract_path = __DIR__ . '/../uploads/updates/' . $account['username'];
 
         $factory = new CunifyFactory();
 
@@ -142,7 +139,7 @@ class Cpanel
         $factory = new CunifyFactory();
 
         $sql = file_get_contents($template_path . '/changedomain.sql');
-        $changedomain = file_get_contents(__DIR__ . '../templates/wp-changedomain.twig');
+        $changedomain = file_get_contents(__DIR__ . '/../templates/wp-changedomain.twig');
 
         $account['database_name'] = substr($account['username'], 0, 8) . '_' . 'main';
         $account['database_user'] = $account['database_name'];
@@ -161,10 +158,9 @@ class Cpanel
         $factory = new CunifyFactory();
 
         $sql = file_get_contents($template_path . '/database.sql');
-        $htaccess = file_get_contents(__DIR__ . '../templates/htaccess.twig');
-        $config = file_get_contents(__DIR__ . '../templates/wp-config.twig');
-        $autologin = file_get_contents(__DIR__ . '../templates/wp-autologin.twig');
-        $installer = file_get_contents(__DIR__ . '../templates/wp-installer.twig');
+        $htaccess = file_get_contents(__DIR__ . '/../templates/htaccess.twig');
+        $config = file_get_contents(__DIR__ . '/../templates/wp-config.twig');
+        $installer = file_get_contents(__DIR__ . '/../templates/wp-installer.twig');
         $salt = file_get_contents('https://api.wordpress.org/secret-key/1.1/salt/');
 
         $account['database_name'] = substr($account['username'], 0, 8) . '_' . 'main';
@@ -175,13 +171,11 @@ class Cpanel
         $htaccess_str = $factory->renderString($htaccess, (array) $account);
         $installer_str = $factory->renderString($installer, (array) $account);
         $config_str = $factory->renderString($config, (array) $account);
-        $autologin_str = $factory->renderString($autologin, (array) $account);
         $sql_str = $factory->renderString($sql, (array) $account);
 
         file_put_contents($extract_path . '/.htaccess', $htaccess_str);
         file_put_contents($extract_path . '/wp-installer.php', $installer_str);
         file_put_contents($extract_path . '/wp-config.php', $config_str);
-        file_put_contents($extract_path . '/wp-autologin.php', $autologin_str);
         file_put_contents($extract_path . '/database.sql', $sql_str);
     }
 
@@ -383,7 +377,7 @@ class Cpanel
 
         $factory->makeDir($extract_path, 0777);
 
-        $backup = file_get_contents(__DIR__ .'../templates/wp-backup.twig');
+        $backup = file_get_contents(__DIR__ .'/../templates/wp-backup.twig');
         $backup_str = $factory->renderString($backup, (array) $account);
         file_put_contents($extract_path . '/wp-backup.php', $backup_str);
 
@@ -442,7 +436,7 @@ class Cpanel
         $factory->makeDir($extract_path, 0777);
         chmod($extract_path, 0777);
 
-        $analyser = file_get_contents(__DIR__ .'../templates/wp-analyser.twig');
+        $analyser = file_get_contents(__DIR__ .'/../templates/wp-analyser.twig');
         $analyser_str = $factory->renderString($analyser, (array) $account);
 
         file_put_contents($extract_path . '/wp-analyser.php', $analyser_str);

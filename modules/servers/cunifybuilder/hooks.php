@@ -1,10 +1,9 @@
 <?php
 
-
 add_hook('AfterModuleCreate', 1, function ($vars) {
-    
+
     require_once __DIR__ . '/vendor/autoload.php';
-    
+
     require_once __DIR__ . '/classes/Cpanel.php';
     require_once __DIR__ . '/classes/Whm.php';
     require_once __DIR__ . '/classes/CunifyFactory.php';

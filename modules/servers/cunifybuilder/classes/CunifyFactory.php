@@ -22,21 +22,9 @@ class CunifyFactory
     public function renderString($html, $object_arr)
     {
 
-        $loader = new Twig_Loader_Filesystem('/path/to/templates');
-        $twig = new Twig_Environment($loader, array(
-            'cache' => '/path/to/compilation_cache',
-        ));
+        $loader = new Twig_Loader_Filesystem(__DIR__ .'/../templates');
+        $twig = new Twig_Environment($loader);
         $twig->addExtension(new Twig_Extension_StringLoader());
-
-        if ($paths !== '') {
-            $twig->setTemplatesPaths($paths, true);
-        }
-
-        foreach ($object_arr as $key => $object) {
-            $twig->set($key, $object);
-        }
-
-        return $twig;
 
         $object_arr = json_decode(json_encode($object_arr), true);
         $object_arr = (is_array($object_arr)) ? $object_arr : array();
