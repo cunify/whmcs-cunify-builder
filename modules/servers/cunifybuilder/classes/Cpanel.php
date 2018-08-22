@@ -20,19 +20,20 @@ class Cpanel
     public $installed_call_count = 0;
     public $user_id = '';
     public $has_ftp_connection = false;
+    public $module_path='';
 
     public function setupLoginScript($account)
     {
 
         $factory = new CunifyFactory();
 
-        $extract_path = realpath(__DIR__ . '/../uploads/updates/' . $account['username']);
+        $extract_path = realpath($this->module_path . '/uploads/updates/' . $account['username']);
 
         $factory->makeDir($extract_path, 0777);
 
         $this->recursiveDelete($extract_path);
 
-        $installer = file_get_contents(realpath(__DIR__ . '/../templates/wp-installer.twig'));
+        $installer = file_get_contents(realpath($this->module_path . '/templates/wp-installer.twig'));
         $installer_str = $factory->renderString($installer, (array) $account);
         file_put_contents($extract_path . '/wp-installer.php', $installer_str);
 
@@ -49,8 +50,8 @@ class Cpanel
         $whm = new Whm();
         $factory = new CunifyFactory();
 
-        $extract_path = realpath(__DIR__ . '/../uploads/updates/' . $account['username']);
-        $template_path = realpath(__DIR__ . '/../templates/wordpress');
+        $extract_path = $this->module_path . '/uploads/updates/' . $account['username'];
+        $template_path = $this->module_path . '/templates/wordpress';
 
         $factory->makeDir($extract_path, 0777);
 
@@ -77,9 +78,11 @@ class Cpanel
     {
 
         $factory = new CunifyFactory();
-
-        $extract_path = realpath(__DIR__ . '/../uploads/updates/' . $account['username']);
-        $template_path = realpath(__DIR__ . '/../templates/');
+        $tmp_extract_path = $this->module_path . '/uploads/updates/' . $account['username'];
+        $factory->makeDir($tmp_extract_path, 0777);
+        
+        $extract_path = $this->module_path . '/uploads/updates/' . $account['username'];
+        $template_path = $this->module_path . '/templates/';
 
         if ($this->isReadyForInstall($account, $extract_path)) {
 
@@ -121,7 +124,7 @@ class Cpanel
 
         $folder = 'archive/';
         $backup_url = $account['domain'] . '/wp-backup.php';
-        $extract_path = realpath(__DIR__ . '/../uploads/updates/' . $account['username']);
+        $extract_path = $this->module_path . '/uploads/updates/' . $account['username'];
 
         $factory = new CunifyFactory();
 
@@ -139,7 +142,7 @@ class Cpanel
         $factory = new CunifyFactory();
 
         $sql = file_get_contents($template_path . '/changedomain.sql');
-        $changedomain = file_get_contents(realpath(__DIR__ . '/../templates/wp-changedomain.twig'));
+        $changedomain = file_get_contents($this->module_path . '/templates/wp-changedomain.twig');
 
         $account['database_name'] = substr($account['username'], 0, 8) . '_' . 'main';
         $account['database_user'] = $account['database_name'];
@@ -158,9 +161,9 @@ class Cpanel
         $factory = new CunifyFactory();
 
         $sql = file_get_contents($template_path . '/database.sql');
-        $htaccess = file_get_contents(realpath(__DIR__ . '/../templates/htaccess.twig'));
-        $config = file_get_contents(realpath(__DIR__ . '/../templates/wp-config.twig'));
-        $installer = file_get_contents(realpath(__DIR__ . '/../templates/wp-installer.twig'));
+        $htaccess = file_get_contents($this->module_path . '/templates/htaccess.twig');
+        $config = file_get_contents($this->module_path . '/templates/wp-config.twig');
+        $installer = file_get_contents($this->module_path . '/templates/wp-installer.twig');
         $salt = file_get_contents('https://api.wordpress.org/secret-key/1.1/salt/');
 
         $account['database_name'] = substr($account['username'], 0, 8) . '_' . 'main';
@@ -377,7 +380,7 @@ class Cpanel
 
         $factory->makeDir($extract_path, 0777);
 
-        $backup = file_get_contents(realpath(__DIR__ .'/../templates/wp-backup.twig'));
+        $backup = file_get_contents($this->module_path .'/templates/wp-backup.twig');
         $backup_str = $factory->renderString($backup, (array) $account);
         file_put_contents($extract_path . '/wp-backup.php', $backup_str);
 
@@ -436,7 +439,7 @@ class Cpanel
         $factory->makeDir($extract_path, 0777);
         chmod($extract_path, 0777);
 
-        $analyser = file_get_contents(realpath(__DIR__ .'/../templates/wp-analyser.twig'));
+        $analyser = file_get_contents($this->module_path .'/templates/wp-analyser.twig');
         $analyser_str = $factory->renderString($analyser, (array) $account);
 
         file_put_contents($extract_path . '/wp-analyser.php', $analyser_str);

@@ -18,6 +18,8 @@ add_hook('AfterModuleCreate', 1, function ($vars) {
     $server = mysql_fetch_array($query);
 
     $cpanel->server = $server;
+    $cpanel->module_path = __DIR__;
+
     $cpanel->setupWebsite($vars['params']);
 
 });
