@@ -33,11 +33,13 @@ class FtpNew
 
     public function login($ftpUser, $ftpPass)
     {
+       
         if (!$this->connectionID) {
             //$factory->enqueueMessage("Connection not established.", 'error');
             return false;
         } else {
             $this->ftpSession = ftp_login($this->connectionID, $ftpUser, $ftpPass);
+          
             ftp_pasv($this->connectionID, true);
             return true;
         }
